@@ -1,2 +1,2 @@
-export {default as AlgorithmAccordianReducer, heuristicOptions} from './_redux';
+export {default as AlgorithmAccordianReducer} from './_redux';
 export * from './_hooks';

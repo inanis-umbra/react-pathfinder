@@ -1,29 +1,42 @@
 import React, { memo } from "react";
-import { TextField, MenuItem } from "@material-ui/core";
-import { heuristicOptions } from "../_redux";
-
-function HeuristicSelect(props) {
-  const { handleHeuristicChange, heuristic } = props;
-
-  const Options = heuristicOptions.map(({ label, value }) => (
-    <MenuItem key={value} value={value}>
-      {label}
-    </MenuItem>
-  ));
-  const renderSelectValue = (value) => !value ? 'Select Heuristic...' : heuristicOptions.find(heuristic => heuristic.value === value).label
+import { TextField, MenuItem, makeStyles } from "@material-ui/core";
+import { useAccordianHeuristic } from "../_redux";
+const useHeuristicStyles = makeStyles(theme => ({
+  selectHeuristic: {
+    width: "-webkit-fill-available",
+    marginTop: theme.spacing(2)
+  }
+}));
+function HeuristicSelect() {
+  const {
+    title,
+    handleChangeHeuristic,
+    heuristic,
+    heuristicOptions
+  } = useAccordianHeuristic();
+  const classes = useHeuristicStyles();
+  if (!heuristicOptions) {
+    return null;
+  }
   return (
     <TextField
       select
-      label="Heuristic"
-      value={heuristic}
-      onChange={handleHeuristicChange}
-      variant="filled"
+      margin="normal"
+      fullWidth
+      className={classes.selectHeuristic}
+      label={title}
+      placeholder={'Select Heuristic...'}
+      value={heuristic || ""}
       SelectProps={{
-          displayEmpty: true,
-          renderValue: renderSelectValue
+        displayEmpty: true,
+        onChange: handleChangeHeuristic
       }}
     >
-      {Options}
+      {heuristicOptions.map(heuristic => (
+        <MenuItem key={heuristic.value} value={heuristic.value}>
+          {heuristic.label}
+        </MenuItem>
+      ))}
     </TextField>
   );
 }

@@ -5,44 +5,59 @@ export const heuristicOptions = [
   { label: "Octile", value: "octile" },
   { label: "Chebyshev", value: "chebyshev" }
 ];
-const optionalParameters = {
-  allowDiagonal: true,
-  biDirectional: false,
-  cornerCrossing: true
-};
+const optionalParameters = [
+  {
+    label: "Allow Crossing Corners",
+    value: "cornerCrossing"
+  },
+  {
+    label: "Allow Diagonal Movement",
+    value: "allowDiagonal"
+  },
+  {
+    label: "Bi-Directional",
+    value: "biDirectional"
+  }
+];
 export const algorithms = [
   {
     name: "A*",
     id: "astar",
     options: optionalParameters,
-    heuristic: heuristicOptions
+    selectedOptions: [],
+    heuristic: ''
   },
   {
     name: "IDA*",
     id: "idastar",
-    heuristic: heuristicOptions,
-    options: {
-      ...optionalParameters,
-      biDirectional: undefined,
-      secondsLimit: 10,
-      visualizeRecursion: true
-    }
+    heuristic: '',
+    options: [
+      ...optionalParameters.filter(option => option.value !== "biDirectional"),
+      {
+        label: "Visualize Recursion",
+        value: "visualizeRecursion"
+      }
+    ],
+    selectedOptions: []
   },
   {
     name: "Breadth-First-Search",
     id: "bfs",
-    options: optionalParameters
+    options: optionalParameters,
+    selectedOptions: []
   },
   {
     name: "Best-First-Search",
     id: "bestfs",
     options: optionalParameters,
-    heuristic: heuristicOptions
+    selectedOptions: [],
+    heuristic: ''
   },
   {
     name: "Dijkstra",
     id: "dijkstra",
-    options: optionalParameters
+    options: optionalParameters,
+    selectedOptions: []
   }
 ];
 
@@ -57,11 +72,8 @@ const AlgorithmAccordianSlice = createSlice({
   },
   reducers: {
     selectAlgorithm: (state, action) => {
-      const { name } = action.payload;
-      if (state.selectedAlgorithm === name) {
-        state.selectedAlgorithm = null;
-      }
-      state.selectedAlgorithm = name;
+      state.selectedAlgorithm =
+        state.selectedAlgorithm === action.payload ? null : action.payload;
     }
   }
 });
@@ -76,36 +88,43 @@ const AlgorithmSlice = createSlice({
     id: "",
     name: "",
     options: optionalParameters,
-    heuristic: null
+    selectedOptions: [],
+    heuristic: ''
   },
   reducers: {
     changeOption: (state, action) => {
-      const { name, value } = action.payload;
-      if (state.options[name] !== value) {
-        state.options[name] = value;
+      const { name } = action.payload;
+      if (name) {
+        let itemIndex = state.selectedOptions.indexOf(name);
+        let currentSelected = state.selectedOptions;
+        state.selectedOptions =
+          itemIndex !== -1
+            ? itemIndex > 0
+              ? itemIndex !== currentSelected.length - 1
+                ? currentSelected
+                    .slice(0, itemIndex)
+                    .concat(currentSelected.slice(itemIndex + 1))
+                : currentSelected.slice(0, -1)
+              : currentSelected.slice(1)
+            : [name, ...currentSelected];
       }
     },
     changeHeuristic: (state, action) => {
-      const { value } = action.payload;
+      const value = action.payload;
       if (state.heuristic !== value) {
         state.heuristic = value;
       }
     }
   },
   extraReducers: {
-    [AlgorithmAccordianSlice.state.selectAlgorithm]: (state, action) => {
-      let algorithm = algorithms.find(({ id }) => id === action.payload);
-      if (algorithm) {
-        state = algorithm;
-      }
-    }
+    [AlgorithmAccordianSlice.actions.selectAlgorithm]: (state, action) => ({
+      ...state,
+      ...algorithms.find(algorithm => algorithm.id === action.payload)
+    })
   }
 });
 
-export const {
-  changeOption,
-  changeHeuristic
-} = AlgorithmSlice.actions;
+export const { changeOption, changeHeuristic } = AlgorithmSlice.actions;
 
 const { reducer: AlgorithmReducer } = AlgorithmSlice;
 
